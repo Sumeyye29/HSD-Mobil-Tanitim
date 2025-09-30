@@ -120,6 +120,7 @@
             align-items: center;
             position: relative;
             overflow: hidden;
+            padding-top: 120px; /* Fixed navbar yüksekliği kadar boşluk bırak */
         }
 
         .hero::before {
@@ -180,7 +181,7 @@
 @media (max-width: 768px) {
     .hero {
         min-height: auto;      /* Yüksekliği içerik kadar */
-        padding: 130px 20px;    /* İç boşluk vererek üstten boşluk bırak */
+        padding: 160px 20px 40px;    /* Sabit navbar için üst boşluk artırıldı */
         align-items: flex-start; /* İçerik üstte başlasın */
     }
     .hero-content {
@@ -232,13 +233,14 @@
         /* Phone Mockups */
         .phone-mockups {
             position: relative;
-            height: 600px;
+            height: 520px;
+            z-index: 1; /* telefonlar nav'ın altına girmesin */
         }
 
         .phone {
             position: absolute;
-            width: 280px;
-            height: 560px;
+            width: 240px;
+            height: 480px;
             background: #000000;
             border-radius: 35px;
             padding: 8px;
@@ -265,26 +267,24 @@
     position: absolute;
     top: -1px;
     left: -0.8px;
-    width: 270px;
-    height: 545px;
+    width: 220px;
+    height: 468px;
     border-radius: 12px;
-    
 }
 
 .phone.center .phone-screen img {
     position: absolute;
     top: -2px;
     left: -0.1px;
-    width: 264px;
-    height: 550px;
+    width: 227px;
+    height: 472px;
     border-radius: 12px;
-    
 }
 
 .phone.right .phone-screen img {
     position: absolute;
-    width: 266.3px;
-    height: 541px;
+    width: 227px;
+    height: 462px;
     border-radius: 12px;
     left: -4px;
     top: 1.5px;
@@ -347,21 +347,21 @@
 
 
         .phone.left {
-            left: -50px;
-            top: 80px;
+            left: -40px;
+            top: 68px;
             z-index: 1;
             transform: rotate(-8deg);
         }
 
         .phone.center {
-            left: 120px;
-            top: 0px;
+            left: 100px;
+            top: -2px;
             z-index: 3;
         }
 
         .phone.right {
-            left: 290px;
-            top: 60px;
+            left: 250px;
+            top: 48px;
             z-index: 2;
             transform: rotate(8deg);
         }
@@ -1009,17 +1009,17 @@
 
             .phone.left {
                 left: -30px;
-                top: 50px;
+                top: 48px;
             }
 
             .phone.center {
                 left: 80px;
-                top: 0px;
+                top: -2px;
             }
 
             .phone.right {
                 left: 190px;
-                top: 40px;
+                top: 38px;
             }
 
             .nav-links {
@@ -1657,6 +1657,163 @@
             }
         });
     </script>
+    
+    <style>
+        /* Download overlay */
+        .download-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            backdrop-filter: blur(2px);
+        }
+        .download-modal {
+            width: 90%;
+            max-width: 420px;
+            background: #111;
+            color: #fff;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 24px;
+            text-align: center;
+            position: relative;
+        }
+        .download-close {
+            position: absolute;
+            top: 10px;
+            right: 12px;
+            background: transparent;
+            border: 0;
+            color: #bbb;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        .download-logo {
+            width: 64px;
+            height: 64px;
+            border-radius: 12px;
+            object-fit: contain;
+            margin: 4px auto 12px;
+            animation: pulseGlow 1.6s ease-in-out infinite;
+        }
+        @keyframes pulseGlow {
+            0%, 100% { filter: drop-shadow(0 0 0 rgba(230,0,0,0.0)); transform: scale(1); }
+            50% { filter: drop-shadow(0 0 12px rgba(230,0,0,0.6)); transform: scale(1.03); }
+        }
+        .download-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .download-sub {
+            font-size: 14px;
+            color: #ccc;
+            margin-bottom: 16px;
+        }
+        .download-progress {
+            width: 100%;
+            height: 12px;
+            background: #222;
+            border-radius: 999px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .download-progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #e60000, #cc0000);
+            transition: width 0.15s ease;
+        }
+        .download-percent {
+            margin-top: 10px;
+            font-variant-numeric: tabular-nums;
+            color: #e6e6e6;
+        }
+    </style>
+
+    <!-- Download Overlay -->
+    <div class="download-overlay" id="downloadOverlay">
+        <div class="download-modal">
+            <button class="download-close" id="downloadClose" aria-label="Kapat">×</button>
+            <img src="logoo.png" alt="HSD" class="download-logo" />
+            <div class="download-title">Yakında</div>
+            <div class="download-sub" id="downloadSub">Yükleniyor...</div>
+            <div class="download-progress">
+                <div class="download-progress-fill" id="downloadFill"></div>
+            </div>
+            <div class="download-percent" id="downloadPercent">0%</div>
+        </div>
+    </div>
+
+    <script>
+        // Download overlay behavior
+        (function() {
+            const overlay = document.getElementById('downloadOverlay');
+            const closeBtn = document.getElementById('downloadClose');
+            const fill = document.getElementById('downloadFill');
+            const percentText = document.getElementById('downloadPercent');
+            const subText = document.getElementById('downloadSub');
+
+            let intervalId = null;
+            let current = 0;
+
+            function showOverlay() {
+                if (!overlay) return;
+                overlay.style.display = 'flex';
+                current = 0;
+                update(0);
+                subText.textContent = 'Yükleniyor...';
+                // Progress up to 99 and stay
+                clearInterval(intervalId);
+                intervalId = setInterval(() => {
+                    if (current < 99) {
+                        const step = current < 80 ? 3 : (current < 95 ? 1 : 0.5);
+                        current = Math.min(99, Math.round((current + step) * 10) / 10);
+                        update(current);
+                    } else {
+                        clearInterval(intervalId);
+                        subText.textContent = 'Yükleme neredeyse tamamlandı';
+                    }
+                }, 120);
+            }
+
+            function hideOverlay() {
+                overlay.style.display = 'none';
+                clearInterval(intervalId);
+            }
+
+            function update(val) {
+                fill.style.width = val + '%';
+                percentText.textContent = (Number.isInteger(val) ? val : val.toFixed(1)) + '%';
+            }
+
+            // Attach handlers to download buttons
+            function bindDownloadButtons() {
+                const candidates = document.querySelectorAll('a.nav-btn, a.cta-button');
+                candidates.forEach(el => {
+                    el.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        showOverlay();
+                    });
+                });
+            }
+
+            document.addEventListener('DOMContentLoaded', bindDownloadButtons);
+            // In case this script loads after DOMContentLoaded
+            if (document.readyState === 'complete' || document.readyState === 'interactive') {
+                bindDownloadButtons();
+            }
+
+            closeBtn.addEventListener('click', hideOverlay);
+            overlay.addEventListener('click', function(e) {
+                if (e.target === overlay) hideOverlay();
+            });
+        })();
+    </script>
 </body>
 </html>
     <!-- Navigation -->
@@ -1665,10 +1822,7 @@
             <div class="nav-content">
                 <a href="#" class="logo"><img src="logoo.png" alt="HSD Logo" /></a>
                 <ul class="nav-links">
-                    <li><a href="#features">Özellikler</a></li>
-                    <li><a href="#about">Hakkımızda</a></li>
-                    <li><a href="#contact">İletişim</a></li>
-                    <li><a href="#" class="nav-btn">İndir</a></li>
+                    <li><a href="#" class="nav-btn">Geri Dön</a></li>
                 </ul>
             </div>
         </div>
@@ -1736,23 +1890,16 @@
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-icon">👥</div>
-                        <div class="stat-number" data-target="150000">0</div>
+                        <div class="stat-number" data-target="1600">0</div>
                         <div class="stat-label">Aktif Kullanıcı</div>
                         <div class="stat-description">Günlük olarak uygulamamızı kullanan kayıtlı kullanıcı sayısı</div>
                     </div>
 
                     <div class="stat-card">
                         <div class="stat-icon">🌟</div>
-                        <div class="stat-number" data-target="25000">0</div>
+                        <div class="stat-number" data-target="80">0</div>
                         <div class="stat-label">Aktif Topluluk</div>
                         <div class="stat-description">Etkileşimde bulunan ve içerik paylaşan topluluk üyesi sayısı</div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-icon">⭐</div>
-                        <div class="stat-number" data-target="4.8">0</div>
-                        <div class="stat-label">Uygulama Puanı</div>
-                        <div class="stat-description">App Store ve Google Play Store'daki ortalama kullanıcı puanımız</div>
                     </div>
                 </div>
             </div>
